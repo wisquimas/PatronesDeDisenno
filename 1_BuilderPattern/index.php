@@ -2,6 +2,8 @@
 /**
  * Builder Pattern
  *
+ * El patron se utiliza cuando nosotros sabemos cual es la clase final que queremos recibir pero queremos poder tener la libertad de contruirlo de distintas formas como si fueran plantillas de una misma clase
+ *
  * Este patron tiene 4 elementos escenciales:
  *  - Builder abstracto : En este caso usamos CarBuilder el cual nos define los pasos que se utilizan para hacer la construccion
  *  - Directo: El director es el que le establece al Builder los pasos que debe realizar para devolver el producto final
