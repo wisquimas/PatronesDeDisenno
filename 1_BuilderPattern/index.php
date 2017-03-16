@@ -111,9 +111,7 @@ final class Carro
 
     public function doSomething()
     {
-        echo '<pre>';
         var_dump($this);
-        echo '</pre>';
     }
 
     public function setPuertas($puertas)
