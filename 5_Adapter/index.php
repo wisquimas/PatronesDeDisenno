@@ -1,149 +1,169 @@
 <?php
-namespace Test;
+
+/**
+ * Adapter
+ * Sirve para adaptar un sistema antiguo a uno moderno
+ */
+
+/**
+ * Class Shipping
+ * Sistemas
+ */
+abstract class Shipping
+{
+    protected $origen;
+    protected $destino;
+    protected $peso;
+    protected $total;
+
+    abstract public function request($origen, $destino, $peso);
+
+    public function DevolverPrecio()
+    {
+        echo "El paquete ira desde {$this->origen} a {$this->destino}.\nTiene un peso de {$this->peso}.\nEl coste de {$this->total}.\n";
+    }
+}
+
+/**
+ * Class Adaptee
+ * Clase antigua o fuente original de recursos
+ */
+class ShippingAdaptee extends Shipping
+{
+    public function request($origen, $destino, $peso)
+    {
+        $this->origen = $origen;
+        $this->destino = $destino;
+        $this->peso = $peso;
+
+        $this->total = rand(0, 12) * (int)($peso);
+    }
+}
+
+/**
+ * Class TargetShipping
+ * Nuevo Elemento modificado, nueva sdk, etc...
+ */
+class TargetShipping
+{
+    private $origen;
+    private $destino;
+    private $peso;
+    private $total;
+
+    public function login($credenciales)
+    {
+        echo "Recibimos credenciales \n";
+    }
+
     /**
-     * Adapter
-     *
+     * @param mixed $origen
      */
-/**
- * Class SDK
- * Trabaja con los sdk del sistema
- * @package Test
- */
-class SDK
-{
-    static public function GetTime($data, $className = Tiempo::class)
+    public function setOrigen($origen)
     {
-        $time = TiempoSDKBuilder::construir($className, $data);
-        return $time;
+        $this->origen = $origen;
     }
-}
 
-/**
- * Interface SDKBuilderInterface
- * Obliga al builder especifico a comprobar familia
- * @package Test
- */
-interface SDKBuilderInterface
-{
     /**
-     * @return string
+     * @param mixed $destino
      */
-    static function getValidClassFamily();
-}
-
-/**
- * Class SDKBuilder
- * Crea las funciones basicas del sistema
- * @package Test
- */
-abstract class SDKBuilder implements SDKBuilderInterface
-{
-    final static public function construir($className, array $attributes)
+    public function setDestino($destino)
     {
-        if (static::validate($className)) {
-            $constructor = new static;
-            $objeto = new $className();
-            $constructor->Configure($objeto, $attributes);
-            return $objeto;
-        }
+        $this->destino = $destino;
     }
 
-    final static function validate($className)
-    {
-        $validClassFamily = static::getValidClassFamily();
-        $test = new $className;
-        if ($test instanceof $validClassFamily) {
-            return true;
-        }
-        return false;
-    }
-
-    final private function Configure(Model $objeto, array $attributes)
-    {
-        $configuracion = $objeto->configure($attributes);
-        if (is_array($configuracion) && count($configuracion) > 0) {
-            foreach ($configuracion as $propiedad => $value) {
-                if (isset($objeto->$propiedad)) {
-                    $objeto->$propiedad = $value;
-                };
-            }
-        }
-    }
-}
-
-/**
- * Class TiempoSDKBuilder
- * Configura
- * @package Test
- */
-class TiempoSDKBuilder extends SDKBuilder
-{
     /**
-     * @return string
+     * @param mixed $peso
      */
-    static function getValidClassFamily()
+    public function setPeso($peso)
     {
-        return Tiempo::class;
+        $this->peso = $peso;
     }
-}
 
-/**
- * Interface ModelInterface
- * Obliga a los modelos a tener un script de configuracion
- * @package Test
- */
-interface ModelInterface
-{
+    public function setTotal()
+    {
+
+        $this->total = rand(0, 10000) * (float)($this->peso);
+    }
+
     /**
-     * @param array $attributes
-     * @return array
+     * @return mixed
      */
-    public function configure(array $attributes);
-}
-
-/**
- * Class Model
- * Obliga a no definir constructores
- * @package Test
- */
-abstract class Model implements ModelInterface
-{
-    final public function __construct()
+    public function getOrigen()
     {
+        return $this->origen;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDestino()
+    {
+        return $this->destino;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPeso()
+    {
+        return $this->peso;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTotal()
+    {
+        return $this->total;
     }
 }
 
 /**
- * Class Tiempo
- * Define un posible objeto
- * @package Test
+ * Class Adapter
+ * Adaptador para trabajar con la clase nueva desde los mismos metodos que usaba la vieja
  */
-class Tiempo extends Model
+class Adapter extends ShippingAdaptee
 {
-    public $nombre = '';
-
-    public function configure(array $attributes)
+    public function request($origen, $destino, $peso)
     {
-        return [
-            'nombre' => 2,
-            'apellido' => 'pepe'
-        ];
+        $target = new TargetShipping();
+
+        //Logueamos
+        $target->login('credenciales');
+
+        //Configuramos y trabajamos en remoto
+        $target->setOrigen($origen);
+        $target->setDestino($destino);
+        $target->setPeso($peso);
+        $target->setTotal();
+
+        //Configuramos este
+        $this->origen = $target->getOrigen();
+        $this->destino = $target->getDestino();
+        $this->peso = $target->getPeso();
+        $this->total = $target->getTotal();
     }
 }
 
 /**
- * Class Tiempo2
- * Define un segundo posible objeto
- * @package Test
+ * Class Client
+ * Consume los servicios
  */
-class Tiempo2 extends Tiempo
+class Client
 {
-    public function configure(array $attributes)
+    public $shipping;
+
+    public function __construct(Shipping $shipping)
     {
-        return [
-            'nombre' => 5,
-            'apellido' => 'pepe'
-        ];
+        $this->shipping = $shipping;
+    }
+
+    public function run($origen, $destino, $peso)
+    {
+        $shipping = $this->shipping;
+        $shipping->request($origen, $destino, $peso);
+        return $shipping;
     }
 }
 
@@ -152,10 +172,16 @@ class Tiempo2 extends Tiempo
  ************************************/
 
 try {
-    $time = SDK::GetTime(['nombre' => 'hola'], Tiempo::class);
-    $time2 = SDK::GetTime(['nombre' => 'hola'], Tiempo2::class);
-    var_dump($time);
-    var_dump($time2);
+    $adaptee = new Client(new ShippingAdaptee());
+    $envio = $adaptee->run('Buenos Aires', 'Lujan', 800);
+    $envio->DevolverPrecio();
+
+    echo "\n\n";
+
+    $adaptee = new Client(new Adapter());
+    $envio = $adaptee->run('Buenos Aires', 'Lujan', 800);
+    $envio->DevolverPrecio();
+
 } catch (\Error $e) {
     var_dump($e);
 } catch (\Exception $e) {
