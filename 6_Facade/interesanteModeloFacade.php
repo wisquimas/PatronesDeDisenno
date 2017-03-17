@@ -1,12 +1,12 @@
 <?php
 namespace Test;
     /**
-     * Adapter
+     * Facade, Abstract Factory
      *
      */
 /**
  * Class SDK
- * Trabaja con los sdk del sistema
+ * Trabaja con los sdk del sistema, funciona de Facade
  * @package Test
  */
 class SDK
@@ -33,7 +33,7 @@ interface SDKBuilderInterface
 
 /**
  * Class SDKBuilder
- * Crea las funciones basicas del sistema
+ * Crea las funciones basicas del sistema, funciona como Abstract Factory
  * @package Test
  */
 abstract class SDKBuilder implements SDKBuilderInterface
@@ -73,7 +73,7 @@ abstract class SDKBuilder implements SDKBuilderInterface
 
 /**
  * Class TiempoSDKBuilder
- * Configura
+ * Configura, Es la Fabrica del objeto
  * @package Test
  */
 class TiempoSDKBuilder extends SDKBuilder
